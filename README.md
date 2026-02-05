@@ -2,8 +2,13 @@
 
 A web-based application to visualize personal flight history on an interactive 3D globe. It allows users to log flights, view statistics, and explore travel history with high-definition rendering.
 
+![alt text](preview_globe.jpg)
 
+
+
+![alt text](preview_globe_stats.jpg)
 ## Features
+
 
 - **Interactive 3D Globe:** Built with Globe.gl, featuring high-res Blue Marble textures, bump mapping (topography), and a starfield background.
 - **Flight Stacking:** Visualizes duplicate routes (e.g., flying ATH-FCO multiple times) by stacking arcs vertically and color-coding them (Blue -> Cyan -> White).
