@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+
+<head>
+    <title>My Flight Tracker</title>
+    <script src="//unpkg.com/globe.gl"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000;
+            color: white;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- SIDEBAR --- */
+        #sidebar {
+            width: 400px;
+            min-width: 400px;
+            background: #121212;
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        /* --- TABS --- */
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid #333;
+            background: #1a1a1a;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.2s;
+        }
+
+        .tab-btn:hover {
+            color: white;
+            background: #222;
+        }
+
+        .tab-btn.active {
+            color: #00ffff;
+            border-bottom: 3px solid #00ffff;
+            background: #1e1e1e;
+        }
+
+        .scroll-area {
+            padding: 20px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        /* --- STATS DASHBOARD (Tab 2) --- */
+        .chart-wrapper {
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+
+        .fact-card {
+            background: #252525;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border-left: 4px solid #0055ff;
+        }
+
+        .fact-label {
+            font-size: 0.75em;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        .fact-value {
+            font-size: 1.1em;
+            color: white;
+            margin-top: 4px;
+            font-weight: bold;
+        }
+
+        .fact-sub {
+            font-size: 0.8em;
+            color: #00ffff;
+        }
+
+        /* --- CONTROLS (Tab 1) --- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            /* 2 columns */
+            gap: 10px;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #333;
+        }
+
+        .stat-box {
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #00ffff;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.75em;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            width: 100%;
+        }
+
+        label {
+            display: block;
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 4px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            background: #222;
+            border: 1px solid #444;
+            color: white;
+            border-radius: 4px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #00ffff;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 12px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+
+        .btn-swap {
+            background: #333;
+            color: #aaa;
+            border: 1px solid #444;
+            cursor: pointer;
+            padding: 0 10px;
+            height: 38px;
+            border-radius: 4px;
+            font-size: 1.2em;
+            margin: 0 5px;
+            margin-bottom: 15px;
+            transition: all 0.2s;
+        }
+
+        .btn-swap:hover {
+            background: #444;
+            color: white;
+            border-color: #666;
+        }
+
+        /* --- GLOBE --- */
+        #globe-container {
+            flex-grow: 1;
+            position: relative;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="sidebar">
+        <div class="tab-container">
+            <button class="tab-btn active" onclick="switchTab('controls')">Controls</button>
+            <button class="tab-btn" onclick="switchTab('stats')">Statistics</button>
+        </div>
+
+        <div id="view-controls" class="scroll-area">
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-value" id="stat-total-flights">0</div>
+                    <div class="stat-label">Flights</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="stat-total-dist">0</div>
+                    <div class="stat-label">Total KM</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="stat-top-airline" style="color: #ffffff; font-size: 1.1em;">-</div>
+                    <div class="stat-label">Top Airline</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="stat-top-aircraft" style="color: #ffffff; font-size: 1.1em;">-</div>
+                    <div class="stat-label">Top Aircraft</div>
+                </div>
+            </div>
+
+            <h3>Add New Flight</h3>
+            <div class="input-group">
+                <label>Flight Number</label>
+                <input type="text" id="flight_no" placeholder="e.g. GQ820">
+            </div>
+            <div class="input-group">
+                <label>Date</label>
+                <input type="date" id="date">
+            </div>
+            <div style="display: flex; align-items: flex-end;">
+                <div class="input-group">
+                    <label>From (IATA)</label>
+                    <input type="text" id="dep" list="airport-suggestions" placeholder="ATH">
+                </div>
+                <button class="btn-swap" onclick="swapAirports()" title="Swap">⇄</button>
+                <div class="input-group">
+                    <label>To (IATA)</label>
+                    <input type="text" id="dest" list="airport-suggestions" placeholder="FCO">
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Airline</label>
+                <input type="text" id="airline" list="airline-options" placeholder="Airline">
+                <datalist id="airline-options">
+                    <option value="SkyExpress">
+                    <option value="Aegean">
+                    <option value="Ryanair">
+                    <option value="Wizz">
+                </datalist>
+            </div>
+            <div class="input-group">
+                <label>Aircraft Type</label>
+                <input type="text" id="aircraft" list="aircraft-suggestions" placeholder="A320neo">
+                <datalist id="aircraft-suggestions"></datalist>
+            </div>
+            <div class="input-group">
+                <label>Registration</label>
+                <input type="text" id="reg" placeholder="SX-NEA">
+            </div>
+            <button class="btn-primary" onclick="addFlight()">Add to Globe</button>
+
+            <datalist id="airport-suggestions"></datalist>
+
+            <h4>Recent History</h4>
+            <div id="history-list"></div>
+        </div>
+
+        <div id="view-stats" class="scroll-area hidden">
+            <h3>Flight Analysis</h3>
+
+            <div class="fact-card" style="border-left-color: #00ffff;">
+                <div class="fact-label">Longest Flight</div>
+                <div class="fact-value" id="fact-longest">-</div>
+                <div class="fact-sub" id="fact-longest-sub">0 km</div>
+            </div>
+            <div class="fact-card" style="border-left-color: #ff0055;">
+                <div class="fact-label">Shortest Flight</div>
+                <div class="fact-value" id="fact-shortest">-</div>
+                <div class="fact-sub" id="fact-shortest-sub">0 km</div>
+            </div>
+
+            <div class="chart-wrapper">
+                <canvas id="chart-years"></canvas>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="chart-airlines"></canvas>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="chart-airports"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div id="globe-container"></div>
+
+    <script>
+        // --- 1. SETUP GLOBE ---
+        const globe = Globe()(document.getElementById('globe-container'))
+            .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+            .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
+            .backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png')
+            .arcColor(() => '#00ffff')
+            .arcDashLength(1)
+            .arcDashAnimateTime(0)
+            .arcStroke(0.2)
+            .width(window.innerWidth - 400)
+            .pointColor(() => 'white')
+            .pointAltitude(0)
+            .pointRadius(0.15)
+            .pointLabel('name');
+
+        window.addEventListener('resize', () => {
+            globe.width(window.innerWidth - 400);
+            globe.height(window.innerHeight);
+        });
+
+        // --- 2. DATA HANDLING ---
+        let flightHistory = [];
+
+        fetch('/get_history').then(r => r.json()).then(data => {
+            handleDataUpdate(data);
+        });
+
+        async function addFlight() {
+            const data = {
+                flight_no: document.getElementById('flight_no').value,
+                date: document.getElementById('date').value,
+                dep: document.getElementById('dep').value,
+                dest: document.getElementById('dest').value,
+                airline: document.getElementById('airline').value,
+                aircraft: document.getElementById('aircraft').value,
+                reg: document.getElementById('reg').value
+            };
+
+            const response = await fetch('/add_flight', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+            if (result.status === 'success') {
+                handleDataUpdate(result.history);
+                document.getElementById('flight_no').value = '';
+                document.getElementById('dep').value = '';
+                document.getElementById('dest').value = '';
+                document.getElementById('reg').value = '';
+            } else { alert("Error: " + result.message); }
+        }
+
+        function handleDataUpdate(history) {
+            flightHistory = history;
+            const validFlights = history.filter(f => f.startLat && f.label);
+
+            // ARC LOGIC
+            const routeCounts = {};
+            const processedArcs = validFlights.map(f => {
+                const point1 = `${f.startLat.toFixed(3)},${f.startLng.toFixed(3)}`;
+                const point2 = `${f.endLat.toFixed(3)},${f.endLng.toFixed(3)}`;
+                const routeKey = [point1, point2].sort().join('-');
+
+                if (!routeCounts[routeKey]) routeCounts[routeKey] = 0;
+                routeCounts[routeKey]++;
+                const count = routeCounts[routeKey];
+
+                const altOffset = (count - 1) * 0.06;
+                let color = '#0055ff';
+                if (count === 2) color = '#00ffff';
+                if (count >= 3) color = '#ffffff';
+
+                return { ...f, arcAlt: 0.1 + altOffset, color: color };
+            });
+
+            // DOT LOGIC
+            const airportsMap = new Map();
+            validFlights.forEach(f => {
+                if (!f.label || !f.label.includes(' → ')) return;
+                const [depIATA, destIATA] = f.label.split(' → ');
+
+                if (!airportsMap.has(depIATA)) airportsMap.set(depIATA, {
+                    lat: f.startLat, lng: f.startLng, name: depIATA, size: 0.35, color: 'white'
+                });
+                if (!airportsMap.has(destIATA)) airportsMap.set(destIATA, {
+                    lat: f.endLat, lng: f.endLng, name: destIATA, size: 0.35, color: 'white'
+                });
+            });
+
+            // Update Globe
+            globe.arcsData(processedArcs)
+                .arcAltitude(d => d.arcAlt)
+                .arcColor(d => d.color)
+                .pointsData(Array.from(airportsMap.values()));
+
+            // Update UI
+            updateStats(validFlights);
+            renderCharts(validFlights);
+            updateHistoryUI(validFlights);
+            updateAllSuggestions(validFlights);
+        }
+
+        // --- 3. CHARTS & STATS ---
+        let chartYears, chartAirlines, chartAirports;
+
+        function renderCharts(data) {
+            const years = {};
+            const airlines = {};
+            const airports = {};
+            let longest = { dist: 0, label: '-' };
+            let shortest = { dist: 999999, label: '-' };
+
+            data.forEach(f => {
+                const dist = parseFloat(f.distance.replace(' km', '')) || 0;
+
+                if (dist > longest.dist) longest = { dist: dist, label: f.label };
+                if (dist > 0 && dist < shortest.dist) shortest = { dist: dist, label: f.label };
+
+                const y = f.date ? f.date.split('-')[0] : 'Unknown';
+                years[y] = (years[y] || 0) + dist;
+
+                if (f.airline) airlines[f.airline] = (airlines[f.airline] || 0) + 1;
+
+                if (f.label && f.label.includes(' → ')) {
+                    const [d, a] = f.label.split(' → ');
+                    airports[d] = (airports[d] || 0) + 1;
+                    airports[a] = (airports[a] || 0) + 1;
+                }
+            });
+
+            document.getElementById('fact-longest').innerText = longest.label;
+            document.getElementById('fact-longest-sub').innerText = Math.round(longest.dist) + " km";
+            document.getElementById('fact-shortest').innerText = shortest.label;
+            document.getElementById('fact-shortest-sub').innerText = Math.round(shortest.dist) + " km";
+
+            // Bar Chart: KM per Year
+            const ctxYears = document.getElementById('chart-years').getContext('2d');
+            if (chartYears) chartYears.destroy();
+            chartYears = new Chart(ctxYears, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(years).sort(),
+                    datasets: [{
+                        label: 'Kilometers Flown',
+                        data: Object.keys(years).sort().map(y => Math.round(years[y])),
+                        backgroundColor: '#00ffff'
+                    }]
+                },
+                options: {
+                    plugins: { legend: { display: false }, title: { display: true, text: 'Distance by Year', color: 'white' } },
+                    scales: { y: { ticks: { color: '#888' } }, x: { ticks: { color: '#888' } } }
+                }
+            });
+
+            // Doughnut Chart: Top Airlines
+            const ctxAirlines = document.getElementById('chart-airlines').getContext('2d');
+            if (chartAirlines) chartAirlines.destroy();
+            const sortedAirlines = Object.entries(airlines).sort((a, b) => b[1] - a[1]).slice(0, 5);
+            chartAirlines = new Chart(ctxAirlines, {
+                type: 'doughnut',
+                data: {
+                    labels: sortedAirlines.map(x => x[0]),
+                    datasets: [{
+                        data: sortedAirlines.map(x => x[1]),
+                        backgroundColor: ['#0055ff', '#00ffff', '#ffffff', '#888888', '#333333'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: { position: 'right', labels: { color: 'white' } },
+                        title: { display: true, text: 'Top 5 Airlines', color: 'white' }
+                    }
+                }
+            });
+
+            // Bar Chart: Top Airports
+            const ctxAirports = document.getElementById('chart-airports').getContext('2d');
+            if (chartAirports) chartAirports.destroy();
+            const sortedAirports = Object.entries(airports).sort((a, b) => b[1] - a[1]).slice(0, 5);
+            chartAirports = new Chart(ctxAirports, {
+                type: 'bar',
+                indexAxis: 'y',
+                data: {
+                    labels: sortedAirports.map(x => x[0]),
+                    datasets: [{
+                        label: 'Visits',
+                        data: sortedAirports.map(x => x[1]),
+                        backgroundColor: '#ff0055'
+                    }]
+                },
+                options: {
+                    plugins: { legend: { display: false }, title: { display: true, text: 'Top 5 Airports', color: 'white' } },
+                    scales: { y: { ticks: { color: '#888' } }, x: { ticks: { color: '#888' } } }
+                }
+            });
+        }
+
+        // --- 4. UTILS ---
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('#view-controls, #view-stats').forEach(d => d.classList.add('hidden'));
+
+            if (tab === 'controls') {
+                document.getElementById('view-controls').classList.remove('hidden');
+                document.querySelector('button[onclick="switchTab(\'controls\')"]').classList.add('active');
+            } else {
+                document.getElementById('view-stats').classList.remove('hidden');
+                document.querySelector('button[onclick="switchTab(\'stats\')"]').classList.add('active');
+            }
+        }
+
+        function swapAirports() {
+            const depInput = document.getElementById('dep');
+            const destInput = document.getElementById('dest');
+            const temp = depInput.value;
+            depInput.value = destInput.value;
+            destInput.value = temp;
+        }
+
+        function updateStats(history) {
+            // 1. Basic Counts
+            document.getElementById('stat-total-flights').innerText = history.length;
+            const totalDist = history.reduce((sum, f) => sum + (parseFloat(f.distance.replace(' km', '')) || 0), 0);
+            document.getElementById('stat-total-dist').innerText = Math.round(totalDist).toLocaleString();
+
+            // 2. Top Airline
+            const airlineCounts = {};
+            const aircraftCounts = {};
+
+            history.forEach(f => {
+                if (f.airline) airlineCounts[f.airline] = (airlineCounts[f.airline] || 0) + 1;
+                if (f.aircraft) aircraftCounts[f.aircraft] = (aircraftCounts[f.aircraft] || 0) + 1;
+            });
+
+            let topAirline = "-";
+            let maxCount = 0;
+            for (const [key, count] of Object.entries(airlineCounts)) {
+                if (count > maxCount) { maxCount = count; topAirline = key; }
+            }
+            document.getElementById('stat-top-airline').innerText = topAirline;
+
+            // 3. Top Aircraft
+            let topAircraft = "-";
+            let maxAcCount = 0;
+            for (const [key, count] of Object.entries(aircraftCounts)) {
+                if (count > maxAcCount) { maxAcCount = count; topAircraft = key; }
+            }
+            document.getElementById('stat-top-aircraft').innerText = topAircraft;
+        }
+
+        function updateHistoryUI(history) {
+            const container = document.getElementById('history-list');
+            const displayData = [...history].reverse();
+            container.innerHTML = displayData.map(f => `
+                <div class="flight-card" style="background:#1a1a1a; padding:10px; margin-top:10px; border-left:4px solid #00ffff; font-size:0.85em; cursor:pointer;"
+                     onclick="globe.pointOfView({ lat: ${(f.startLat + f.endLat) / 2}, lng: ${(f.startLng + f.endLng) / 2}, altitude: 1.8 }, 1000)">
+                    <div style="display:flex; justify-content:space-between;"><b>${f.flight_no}</b> <span style="color:#888">${f.date}</span></div>
+                    <div style="color:#00ffff; margin:4px 0;">${f.label}</div>
+                    <div style="color:#ccc;">${f.airline} • ${f.aircraft}</div>
+                </div>
+            `).join('');
+        }
+
+        function updateAllSuggestions(history) {
+            const airportSet = new Set(), aircraftSet = new Set(), airlineSet = new Set();
+            history.forEach(f => {
+                const parts = f.label.split(' → ');
+                if (parts[0]) airportSet.add(parts[0]);
+                if (parts[1]) airportSet.add(parts[1]);
+                if (f.aircraft) aircraftSet.add(f.aircraft);
+                if (f.airline) airlineSet.add(f.airline);
+            });
+            document.getElementById('airport-suggestions').innerHTML = Array.from(airportSet).map(c => `<option value="${c}">`).join('');
+            document.getElementById('aircraft-suggestions').innerHTML = Array.from(aircraftSet).map(a => `<option value="${a}">`).join('');
+        }
+    </script>
+</body>
+
+</html>
