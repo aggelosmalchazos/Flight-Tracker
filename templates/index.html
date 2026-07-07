@@ -3,13 +3,25 @@
 
 <head>
     <title>My Flight Tracker</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>%E2%9C%88%EF%B8%8F</text></svg>">
     <script src="//unpkg.com/globe.gl"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
+        /* Validated dark-mode data-viz palette (dataviz skill) */
+        :root {
+            --surface: #1e1e1e;
+            --ink: #ffffff;
+            --ink-secondary: #c3c2b7;
+            --ink-muted: #898781;
+            --grid: #2c2c2a;
+            --accent: #00e1ff;
+        }
+
         body {
             margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif;
             background: #000;
             color: white;
             display: flex;
@@ -54,8 +66,8 @@
         }
 
         .tab-btn.active {
-            color: #00ffff;
-            border-bottom: 3px solid #00ffff;
+            color: var(--accent);
+            border-bottom: 3px solid var(--accent);
             background: #1e1e1e;
         }
 
@@ -67,7 +79,7 @@
 
         /* --- STATS DASHBOARD (Tab 2) --- */
         .chart-wrapper {
-            background: #1e1e1e;
+            background: var(--surface);
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
@@ -97,14 +109,13 @@
 
         .fact-sub {
             font-size: 0.8em;
-            color: #00ffff;
+            color: var(--accent);
         }
 
-        /* --- CONTROLS (Tab 1) --- */
+        /* --- STAT TILES (Tab 1) --- */
         .stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            /* 2 columns */
             gap: 10px;
             margin-bottom: 25px;
             padding-bottom: 20px;
@@ -112,7 +123,7 @@
         }
 
         .stat-box {
-            background: #1e1e1e;
+            background: var(--surface);
             padding: 15px;
             border-radius: 8px;
             text-align: center;
@@ -121,7 +132,7 @@
         .stat-value {
             font-size: 1.4em;
             font-weight: bold;
-            color: #00ffff;
+            color: var(--accent);
             margin-bottom: 5px;
         }
 
@@ -131,6 +142,7 @@
             text-transform: uppercase;
         }
 
+        /* --- FORM --- */
         .input-group {
             margin-bottom: 15px;
             width: 100%;
@@ -143,7 +155,8 @@
             margin-bottom: 4px;
         }
 
-        input {
+        input,
+        select {
             width: 100%;
             padding: 10px;
             box-sizing: border-box;
@@ -151,11 +164,13 @@
             border: 1px solid #444;
             color: white;
             border-radius: 4px;
+            font-family: inherit;
         }
 
-        input:focus {
+        input:focus,
+        select:focus {
             outline: none;
-            border-color: #00ffff;
+            border-color: var(--accent);
         }
 
         .btn-primary {
@@ -194,10 +209,225 @@
             border-color: #666;
         }
 
+        /* --- EDIT BANNER --- */
+        .edit-banner {
+            background: rgba(0, 225, 255, 0.1);
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+            padding: 10px 12px;
+            margin-bottom: 15px;
+            font-size: 0.85em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .edit-banner button {
+            background: none;
+            border: 1px solid #555;
+            color: #ccc;
+            border-radius: 4px;
+            padding: 4px 10px;
+            cursor: pointer;
+        }
+
+        /* --- HISTORY --- */
+        .history-toolbar {
+            display: flex;
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        .history-toolbar input {
+            flex: 2;
+        }
+
+        .history-toolbar select {
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .btn-ghost {
+            background: #333;
+            color: #aaa;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 0.75em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+        }
+
+        .btn-ghost:hover {
+            background: #444;
+            color: white;
+            border-color: #666;
+        }
+
+        .flight-card {
+            background: #1a1a1a;
+            padding: 10px 58px 10px 10px;
+            margin-top: 10px;
+            border-left: 4px solid var(--accent);
+            border-radius: 4px;
+            font-size: 0.85em;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .card-actions {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            display: flex;
+            gap: 2px;
+        }
+
+        .card-actions button {
+            background: transparent;
+            color: #666;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95em;
+            line-height: 1;
+            padding: 3px 6px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .card-actions .edit:hover {
+            background: #333;
+            color: white;
+        }
+
+        .card-actions .del:hover {
+            background: #d03b3b;
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #666;
+            padding: 30px 15px;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+
         /* --- GLOBE --- */
         #globe-container {
             flex-grow: 1;
             position: relative;
+        }
+
+        #loader {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            background: #000;
+            color: #888;
+            z-index: 50;
+            transition: opacity 0.6s;
+        }
+
+        .spinner {
+            width: 42px;
+            height: 42px;
+            border: 3px solid #222;
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.9s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        #globe-hint {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        #view-all-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            z-index: 30;
+            background: rgba(20, 20, 20, 0.8);
+            color: #ddd;
+            border: 1px solid #444;
+            border-radius: 6px;
+            padding: 8px 14px;
+            cursor: pointer;
+            font-size: 0.8em;
+            backdrop-filter: blur(4px);
+        }
+
+        #view-all-btn:hover {
+            background: rgba(40, 40, 40, 0.9);
+            color: white;
+        }
+
+        /* --- TOASTS --- */
+        #toast-container {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+            z-index: 200;
+        }
+
+        .toast {
+            background: #202020;
+            color: #eee;
+            border: 1px solid #444;
+            border-left: 4px solid var(--accent);
+            border-radius: 6px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.25s;
+            font-size: 0.9em;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast-error {
+            border-left-color: #d03b3b;
+        }
+
+        .toast-action {
+            background: none;
+            border: none;
+            color: var(--accent);
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.85em;
         }
 
         .hidden {
@@ -226,71 +456,111 @@
                     <div class="stat-label">Total KM</div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-value" id="stat-top-airline" style="color: #ffffff; font-size: 1.1em;">-</div>
+                    <div class="stat-value" id="stat-countries">0</div>
+                    <div class="stat-label">Countries</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="stat-airports">0</div>
+                    <div class="stat-label">Airports</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="stat-continents">0</div>
+                    <div class="stat-label">Continents</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="stat-hours">0h</div>
+                    <div class="stat-label">Time In Air</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="stat-top-airline" style="color:#fff; font-size:1.1em;">-</div>
                     <div class="stat-label">Top Airline</div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-value" id="stat-top-aircraft" style="color: #ffffff; font-size: 1.1em;">-</div>
+                    <div class="stat-value" id="stat-top-aircraft" style="color:#fff; font-size:1.1em;">-</div>
                     <div class="stat-label">Top Aircraft</div>
                 </div>
             </div>
 
             <h3>Add New Flight</h3>
-            <div class="input-group">
-                <label>Flight Number</label>
-                <input type="text" id="flight_no" placeholder="e.g. GQ820">
+
+            <div id="edit-banner" class="edit-banner hidden">
+                <span>Editing <b id="edit-banner-label"></b></span>
+                <button type="button" onclick="cancelEdit()">Cancel</button>
             </div>
-            <div class="input-group">
-                <label>Date</label>
-                <input type="date" id="date">
-            </div>
-            <div style="display: flex; align-items: flex-end;">
+
+            <form id="flight-form" onsubmit="onSubmitFlight(event)">
                 <div class="input-group">
-                    <label>From (IATA)</label>
-                    <input type="text" id="dep" list="airport-suggestions" placeholder="ATH">
+                    <label>Flight Number</label>
+                    <input type="text" id="flight_no" placeholder="e.g. GQ820">
                 </div>
-                <button class="btn-swap" onclick="swapAirports()" title="Swap">⇄</button>
                 <div class="input-group">
-                    <label>To (IATA)</label>
-                    <input type="text" id="dest" list="airport-suggestions" placeholder="FCO">
+                    <label>Date</label>
+                    <input type="date" id="date">
                 </div>
-            </div>
-            <div class="input-group">
-                <label>Airline</label>
-                <input type="text" id="airline" list="airline-options" placeholder="Airline">
-                <datalist id="airline-options">
-                    <option value="SkyExpress">
-                    <option value="Aegean">
-                    <option value="Ryanair">
-                    <option value="Wizz">
-                </datalist>
-            </div>
-            <div class="input-group">
-                <label>Aircraft Type</label>
-                <input type="text" id="aircraft" list="aircraft-suggestions" placeholder="A320neo">
-                <datalist id="aircraft-suggestions"></datalist>
-            </div>
-            <div class="input-group">
-                <label>Registration</label>
-                <input type="text" id="reg" placeholder="SX-NEA">
-            </div>
-            <button class="btn-primary" onclick="addFlight()">Add to Globe</button>
+                <div style="display: flex; align-items: flex-end;">
+                    <div class="input-group">
+                        <label>From (IATA)</label>
+                        <input type="text" id="dep" list="airport-suggestions" placeholder="ATH" required autocomplete="off">
+                    </div>
+                    <button type="button" class="btn-swap" onclick="swapAirports()" title="Swap">⇄</button>
+                    <div class="input-group">
+                        <label>To (IATA)</label>
+                        <input type="text" id="dest" list="airport-suggestions" placeholder="FCO" required autocomplete="off">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Airline</label>
+                    <input type="text" id="airline" list="airline-options" placeholder="Airline">
+                    <datalist id="airline-options"></datalist>
+                </div>
+                <div class="input-group">
+                    <label>Aircraft Type</label>
+                    <input type="text" id="aircraft" list="aircraft-suggestions" placeholder="A320neo">
+                    <datalist id="aircraft-suggestions"></datalist>
+                </div>
+                <div class="input-group">
+                    <label>Registration</label>
+                    <input type="text" id="reg" placeholder="SX-NEA">
+                </div>
+                <button type="submit" class="btn-primary" id="submit-btn">Add to Globe</button>
+            </form>
 
             <datalist id="airport-suggestions"></datalist>
 
-            <h4>Recent History</h4>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
+                <h4 style="margin:0;">History</h4>
+                <div style="display:flex; gap:6px;">
+                    <button class="btn-ghost" onclick="document.getElementById('import-file').click()"
+                        title="Import flights from a JSON or CSV file">Import</button>
+                    <button class="btn-ghost" onclick="exportData()"
+                        title="Download your flight history as JSON">Export</button>
+                    <input type="file" id="import-file" accept=".json,.csv" class="hidden" onchange="onImportFile(event)">
+                </div>
+            </div>
+
+            <div class="history-toolbar">
+                <input type="text" id="history-filter" placeholder="Filter flights…" oninput="renderHistory()">
+                <select id="history-sort" onchange="renderHistory()">
+                    <option value="recent">Newest added</option>
+                    <option value="date-desc">Date ↓</option>
+                    <option value="date-asc">Date ↑</option>
+                    <option value="dist-desc">Distance ↓</option>
+                    <option value="dist-asc">Distance ↑</option>
+                </select>
+            </div>
+
             <div id="history-list"></div>
         </div>
 
         <div id="view-stats" class="scroll-area hidden">
             <h3>Flight Analysis</h3>
 
-            <div class="fact-card" style="border-left-color: #00ffff;">
+            <div class="fact-card" style="border-left-color: var(--accent);">
                 <div class="fact-label">Longest Flight</div>
                 <div class="fact-value" id="fact-longest">-</div>
                 <div class="fact-sub" id="fact-longest-sub">0 km</div>
             </div>
-            <div class="fact-card" style="border-left-color: #ff0055;">
+            <div class="fact-card" style="border-left-color: #e66767;">
                 <div class="fact-label">Shortest Flight</div>
                 <div class="fact-value" id="fact-shortest">-</div>
                 <div class="fact-sub" id="fact-shortest-sub">0 km</div>
@@ -308,134 +578,232 @@
         </div>
     </div>
 
-    <div id="globe-container"></div>
+    <div id="globe-container">
+        <button id="view-all-btn" onclick="fitToData()">🌍 View all</button>
+        <div id="globe-hint" class="hidden">Add your first flight ✈️<br><small>It will appear here on the globe.</small></div>
+        <div id="loader">
+            <div class="spinner"></div>
+            <div>Loading globe…</div>
+        </div>
+        <div id="toast-container"></div>
+    </div>
 
     <script>
+        // --- VIZ PALETTE (validated for the dark surface via the dataviz skill) ---
+        const VIZ = {
+            categorical: ['#3987e5', '#199e70', '#c98500', '#9085e9', '#e66767'],
+            other: '#898781',
+            seriesBlue: '#3987e5',
+            seriesAqua: '#199e70',
+            ink: '#ffffff',
+            inkMuted: '#898781',
+            grid: '#2c2c2a',
+            surface: '#1e1e1e'
+        };
+        Chart.defaults.color = VIZ.inkMuted;
+        Chart.defaults.font.family = "system-ui, -apple-system, 'Segoe UI', sans-serif";
+
         // --- 1. SETUP GLOBE ---
         const globe = Globe()(document.getElementById('globe-container'))
             .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
             .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
             .backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png')
+            .showAtmosphere(true)
+            .atmosphereColor('#3a6ea5')
+            .atmosphereAltitude(0.18)
             .arcColor(() => '#00ffff')
-            .arcDashLength(1)
-            .arcDashAnimateTime(0)
-            .arcStroke(0.2)
-            .width(window.innerWidth - 400)
+            .arcDashLength(0.4)
+            .arcDashGap(0.15)
+            .arcDashInitialGap(() => Math.random())
+            .arcDashAnimateTime(3000)
+            .arcStroke(0.4)
+            .arcLabel(d => `<b>${d.flight_no || d.label}</b><br/>${d.label}<br/>${Math.round(flightDist(d)).toLocaleString()} km${d.date ? ' • ' + d.date : ''}`)
             .pointColor(() => 'white')
             .pointAltitude(0)
-            .pointRadius(0.15)
-            .pointLabel('name');
+            .pointRadius(d => d.radius || 0.2)
+            .pointLabel('name')
+            .ringColor(() => t => `rgba(0,225,255,${1 - t})`)
+            .ringMaxRadius(d => d.ringMax || 2)
+            .ringPropagationSpeed(1.4)
+            .ringRepeatPeriod(2200)
+            .width(window.innerWidth - 400)
+            .onGlobeReady(hideLoader);
 
         window.addEventListener('resize', () => {
             globe.width(window.innerWidth - 400);
             globe.height(window.innerHeight);
         });
 
+        function hideLoader() {
+            const l = document.getElementById('loader');
+            l.style.opacity = 0;
+            setTimeout(() => l.classList.add('hidden'), 600);
+        }
+        setTimeout(hideLoader, 9000); // fallback if textures stall
+
+        // --- HELPERS ---
+        function flightDist(f) {
+            if (typeof f.distance_km === 'number') return f.distance_km;
+            return parseFloat(String(f.distance || '').replace(' km', '')) || 0;
+        }
+
+        function esc(s) {
+            return String(s ?? '').replace(/[&<>"']/g, c => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[c]));
+        }
+
+        function showToast(message, opts = {}) {
+            const { actionLabel, onAction, timeout = 4000, type = 'info' } = opts;
+            const container = document.getElementById('toast-container');
+            const el = document.createElement('div');
+            el.className = 'toast toast-' + type;
+            const span = document.createElement('span');
+            span.textContent = message;
+            el.appendChild(span);
+            let timer;
+            const dismiss = () => { clearTimeout(timer); el.classList.remove('show'); setTimeout(() => el.remove(), 250); };
+            if (actionLabel) {
+                const btn = document.createElement('button');
+                btn.className = 'toast-action';
+                btn.textContent = actionLabel;
+                btn.onclick = () => { if (onAction) onAction(); dismiss(); };
+                el.appendChild(btn);
+            }
+            container.appendChild(el);
+            requestAnimationFrame(() => el.classList.add('show'));
+            timer = setTimeout(dismiss, timeout);
+        }
+
         // --- 2. DATA HANDLING ---
         let flightHistory = [];
 
-        fetch('/get_history').then(r => r.json()).then(data => {
-            handleDataUpdate(data);
-        });
-
-        async function addFlight() {
-            const data = {
-                flight_no: document.getElementById('flight_no').value,
-                date: document.getElementById('date').value,
-                dep: document.getElementById('dep').value,
-                dest: document.getElementById('dest').value,
-                airline: document.getElementById('airline').value,
-                aircraft: document.getElementById('aircraft').value,
-                reg: document.getElementById('reg').value
-            };
-
-            const response = await fetch('/add_flight', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-
-            const result = await response.json();
-            if (result.status === 'success') {
-                handleDataUpdate(result.history);
-                document.getElementById('flight_no').value = '';
-                document.getElementById('dep').value = '';
-                document.getElementById('dest').value = '';
-                document.getElementById('reg').value = '';
-            } else { alert("Error: " + result.message); }
-        }
+        fetch('/get_history').then(r => r.json()).then(handleDataUpdate);
 
         function handleDataUpdate(history) {
             flightHistory = history;
             const validFlights = history.filter(f => f.startLat && f.label);
 
-            // ARC LOGIC
+            // ARC LOGIC (stack duplicate routes, colour by repeat count)
             const routeCounts = {};
             const processedArcs = validFlights.map(f => {
                 const point1 = `${f.startLat.toFixed(3)},${f.startLng.toFixed(3)}`;
                 const point2 = `${f.endLat.toFixed(3)},${f.endLng.toFixed(3)}`;
                 const routeKey = [point1, point2].sort().join('-');
-
-                if (!routeCounts[routeKey]) routeCounts[routeKey] = 0;
-                routeCounts[routeKey]++;
+                routeCounts[routeKey] = (routeCounts[routeKey] || 0) + 1;
                 const count = routeCounts[routeKey];
-
                 const altOffset = (count - 1) * 0.06;
                 let color = '#0055ff';
                 if (count === 2) color = '#00ffff';
                 if (count >= 3) color = '#ffffff';
-
-                return { ...f, arcAlt: 0.1 + altOffset, color: color };
+                return { ...f, arcAlt: 0.1 + altOffset, color };
             });
 
-            // DOT LOGIC
+            // DOT LOGIC — size airports by how often they appear (traffic)
             const airportsMap = new Map();
             validFlights.forEach(f => {
                 if (!f.label || !f.label.includes(' → ')) return;
                 const [depIATA, destIATA] = f.label.split(' → ');
-
-                if (!airportsMap.has(depIATA)) airportsMap.set(depIATA, {
-                    lat: f.startLat, lng: f.startLng, name: depIATA, size: 0.35, color: 'white'
-                });
-                if (!airportsMap.has(destIATA)) airportsMap.set(destIATA, {
-                    lat: f.endLat, lng: f.endLng, name: destIATA, size: 0.35, color: 'white'
-                });
+                addAirport(airportsMap, depIATA, f.startLat, f.startLng, f.dep_name);
+                addAirport(airportsMap, destIATA, f.endLat, f.endLng, f.dest_name);
             });
+            const airports = Array.from(airportsMap.values()).map(a => ({
+                ...a,
+                radius: 0.18 + Math.sqrt(a.visits) * 0.12,
+                ringMax: 1.2 + Math.min(a.visits, 8) * 0.25
+            }));
 
-            // Update Globe
             globe.arcsData(processedArcs)
                 .arcAltitude(d => d.arcAlt)
                 .arcColor(d => d.color)
-                .pointsData(Array.from(airportsMap.values()));
+                .pointsData(airports)
+                .ringsData(airports);
 
-            // Update UI
+            refreshChoropleth();
+
+            // UI
             updateStats(validFlights);
             renderCharts(validFlights);
-            updateHistoryUI(validFlights);
+            renderHistory();
             updateAllSuggestions(validFlights);
+
+            document.getElementById('globe-hint').classList.toggle('hidden', validFlights.length > 0);
         }
 
-        // --- 3. CHARTS & STATS ---
+        function addAirport(map, iata, lat, lng, name) {
+            if (map.has(iata)) { map.get(iata).visits++; return; }
+            map.set(iata, {
+                lat, lng, visits: 1,
+                name: name ? `${iata} — ${name}` : iata,
+                color: 'white'
+            });
+        }
+
+        // --- 3. CHOROPLETH (visited countries) ---
+        let countriesGeo = null;
+        let visitedCountries = new Set();
+        const COUNTRY_ALIASES = {
+            'united states': 'united states of america',
+            'tanzania': 'united republic of tanzania',
+            'congo (kinshasa)': 'democratic republic of the congo',
+            'congo (brazzaville)': 'republic of the congo',
+            'burma': 'myanmar',
+            "cote d'ivoire": 'ivory coast',
+            'czech republic': 'czechia',
+            'macedonia': 'north macedonia',
+            'serbia': 'republic of serbia'
+        };
+        const NAME_PROPS = ['ADMIN', 'NAME', 'NAME_LONG', 'BRK_NAME', 'SOVEREIGNT', 'GEOUNIT', 'FORMAL_EN'];
+        const norm = s => String(s || '').toLowerCase().trim();
+        const featureNames = feat => NAME_PROPS.map(p => norm(feat.properties[p])).filter(Boolean);
+        const isVisited = feat => featureNames(feat).some(n => visitedCountries.has(n));
+        const capColor = feat => isVisited(feat) ? 'rgba(0,200,255,0.28)' : 'rgba(0,0,0,0)';
+        const strokeColor = feat => isVisited(feat) ? 'rgba(0,225,255,0.55)' : 'rgba(255,255,255,0.05)';
+
+        fetch('/countries').then(r => r.json()).then(geo => {
+            if (!geo || !geo.features || !geo.features.length) return;
+            countriesGeo = geo;
+            globe.polygonsData(geo.features)
+                .polygonAltitude(0.004)
+                .polygonCapColor(capColor)
+                .polygonSideColor(() => 'rgba(0,0,0,0)')
+                .polygonStrokeColor(strokeColor)
+                .polygonLabel(feat => isVisited(feat) ? `<b>${esc(feat.properties.ADMIN || '')}</b> ✓` : '');
+            refreshChoropleth();
+        }).catch(() => { /* choropleth is optional */ });
+
+        function refreshChoropleth() {
+            if (!countriesGeo) return;
+            visitedCountries = new Set();
+            flightHistory.forEach(f => [f.dep_country, f.dest_country].forEach(c => {
+                const n = norm(c);
+                if (!n) return;
+                visitedCountries.add(n);
+                if (COUNTRY_ALIASES[n]) visitedCountries.add(COUNTRY_ALIASES[n]);
+            }));
+            globe.polygonCapColor(capColor).polygonStrokeColor(strokeColor);
+        }
+
+        // --- 4. CHARTS & STATS ---
         let chartYears, chartAirlines, chartAirports;
+        const axisOpts = {
+            y: { ticks: { color: VIZ.inkMuted }, grid: { color: VIZ.grid } },
+            x: { ticks: { color: VIZ.inkMuted }, grid: { color: VIZ.grid } }
+        };
 
         function renderCharts(data) {
-            const years = {};
-            const airlines = {};
-            const airports = {};
+            const years = {}, airlines = {}, airports = {};
             let longest = { dist: 0, label: '-' };
-            let shortest = { dist: 999999, label: '-' };
+            let shortest = { dist: Infinity, label: '-' };
 
             data.forEach(f => {
-                const dist = parseFloat(f.distance.replace(' km', '')) || 0;
-
-                if (dist > longest.dist) longest = { dist: dist, label: f.label };
-                if (dist > 0 && dist < shortest.dist) shortest = { dist: dist, label: f.label };
+                const dist = flightDist(f);
+                if (dist > longest.dist) longest = { dist, label: f.label };
+                if (dist > 0 && dist < shortest.dist) shortest = { dist, label: f.label };
 
                 const y = f.date ? f.date.split('-')[0] : 'Unknown';
                 years[y] = (years[y] || 0) + dist;
-
                 if (f.airline) airlines[f.airline] = (airlines[f.airline] || 0) + 1;
-
                 if (f.label && f.label.includes(' → ')) {
                     const [d, a] = f.label.split(' → ');
                     airports[d] = (airports[d] || 0) + 1;
@@ -444,151 +812,374 @@
             });
 
             document.getElementById('fact-longest').innerText = longest.label;
-            document.getElementById('fact-longest-sub').innerText = Math.round(longest.dist) + " km";
+            document.getElementById('fact-longest-sub').innerText = Math.round(longest.dist).toLocaleString() + " km";
             document.getElementById('fact-shortest').innerText = shortest.label;
-            document.getElementById('fact-shortest-sub').innerText = Math.round(shortest.dist) + " km";
+            document.getElementById('fact-shortest-sub').innerText =
+                (isFinite(shortest.dist) ? Math.round(shortest.dist).toLocaleString() : 0) + " km";
 
-            // Bar Chart: KM per Year
-            const ctxYears = document.getElementById('chart-years').getContext('2d');
+            // Bar: KM per Year (single series → sequential blue, no legend)
             if (chartYears) chartYears.destroy();
-            chartYears = new Chart(ctxYears, {
+            chartYears = new Chart(document.getElementById('chart-years'), {
                 type: 'bar',
                 data: {
                     labels: Object.keys(years).sort(),
                     datasets: [{
-                        label: 'Kilometers Flown',
+                        label: 'Kilometers',
                         data: Object.keys(years).sort().map(y => Math.round(years[y])),
-                        backgroundColor: '#00ffff'
-                    }]
-                },
-                options: {
-                    plugins: { legend: { display: false }, title: { display: true, text: 'Distance by Year', color: 'white' } },
-                    scales: { y: { ticks: { color: '#888' } }, x: { ticks: { color: '#888' } } }
-                }
-            });
-
-            // Doughnut Chart: Top Airlines
-            const ctxAirlines = document.getElementById('chart-airlines').getContext('2d');
-            if (chartAirlines) chartAirlines.destroy();
-            const sortedAirlines = Object.entries(airlines).sort((a, b) => b[1] - a[1]).slice(0, 5);
-            chartAirlines = new Chart(ctxAirlines, {
-                type: 'doughnut',
-                data: {
-                    labels: sortedAirlines.map(x => x[0]),
-                    datasets: [{
-                        data: sortedAirlines.map(x => x[1]),
-                        backgroundColor: ['#0055ff', '#00ffff', '#ffffff', '#888888', '#333333'],
-                        borderWidth: 0
+                        backgroundColor: VIZ.seriesBlue,
+                        borderRadius: 4
                     }]
                 },
                 options: {
                     plugins: {
-                        legend: { position: 'right', labels: { color: 'white' } },
-                        title: { display: true, text: 'Top 5 Airlines', color: 'white' }
+                        legend: { display: false },
+                        title: { display: true, text: 'Distance by Year', color: VIZ.ink },
+                        tooltip: { callbacks: { label: c => c.parsed.y.toLocaleString() + ' km' } }
+                    },
+                    scales: axisOpts
+                }
+            });
+
+            // Doughnut: Top Airlines (categorical, folds extras into "Other")
+            if (chartAirlines) chartAirlines.destroy();
+            const sortedAirlines = Object.entries(airlines).sort((a, b) => b[1] - a[1]);
+            const topAirlines = sortedAirlines.slice(0, 5);
+            const otherTotal = sortedAirlines.slice(5).reduce((s, x) => s + x[1], 0);
+            const airlineLabels = topAirlines.map(x => x[0]);
+            const airlineData = topAirlines.map(x => x[1]);
+            const airlineColors = topAirlines.map((_, i) => VIZ.categorical[i]);
+            if (otherTotal > 0) { airlineLabels.push('Other'); airlineData.push(otherTotal); airlineColors.push(VIZ.other); }
+            chartAirlines = new Chart(document.getElementById('chart-airlines'), {
+                type: 'doughnut',
+                data: {
+                    labels: airlineLabels,
+                    datasets: [{ data: airlineData, backgroundColor: airlineColors, borderColor: VIZ.surface, borderWidth: 2 }]
+                },
+                options: {
+                    plugins: {
+                        legend: { position: 'right', labels: { color: VIZ.ink } },
+                        title: { display: true, text: 'Top Airlines', color: VIZ.ink }
                     }
                 }
             });
 
-            // Bar Chart: Top Airports
-            const ctxAirports = document.getElementById('chart-airports').getContext('2d');
+            // Bar: Top Airports (single series → aqua)
             if (chartAirports) chartAirports.destroy();
             const sortedAirports = Object.entries(airports).sort((a, b) => b[1] - a[1]).slice(0, 5);
-            chartAirports = new Chart(ctxAirports, {
+            chartAirports = new Chart(document.getElementById('chart-airports'), {
                 type: 'bar',
-                indexAxis: 'y',
                 data: {
                     labels: sortedAirports.map(x => x[0]),
                     datasets: [{
                         label: 'Visits',
                         data: sortedAirports.map(x => x[1]),
-                        backgroundColor: '#ff0055'
+                        backgroundColor: VIZ.seriesAqua,
+                        borderRadius: 4
                     }]
                 },
                 options: {
-                    plugins: { legend: { display: false }, title: { display: true, text: 'Top 5 Airports', color: 'white' } },
-                    scales: { y: { ticks: { color: '#888' } }, x: { ticks: { color: '#888' } } }
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: { display: false },
+                        title: { display: true, text: 'Top 5 Airports', color: VIZ.ink },
+                        tooltip: { callbacks: { label: c => c.parsed.x + ' visits' } }
+                    },
+                    scales: axisOpts
                 }
             });
         }
 
-        // --- 4. UTILS ---
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('#view-controls, #view-stats').forEach(d => d.classList.add('hidden'));
-
-            if (tab === 'controls') {
-                document.getElementById('view-controls').classList.remove('hidden');
-                document.querySelector('button[onclick="switchTab(\'controls\')"]').classList.add('active');
-            } else {
-                document.getElementById('view-stats').classList.remove('hidden');
-                document.querySelector('button[onclick="switchTab(\'stats\')"]').classList.add('active');
-            }
-        }
-
-        function swapAirports() {
-            const depInput = document.getElementById('dep');
-            const destInput = document.getElementById('dest');
-            const temp = depInput.value;
-            depInput.value = destInput.value;
-            destInput.value = temp;
+        function formatDuration(hours) {
+            const d = Math.floor(hours / 24);
+            const h = Math.round(hours % 24);
+            return d > 0 ? `${d}d ${h}h` : `${h}h`;
         }
 
         function updateStats(history) {
-            // 1. Basic Counts
             document.getElementById('stat-total-flights').innerText = history.length;
-            const totalDist = history.reduce((sum, f) => sum + (parseFloat(f.distance.replace(' km', '')) || 0), 0);
+            const totalDist = history.reduce((s, f) => s + flightDist(f), 0);
             document.getElementById('stat-total-dist').innerText = Math.round(totalDist).toLocaleString();
 
-            // 2. Top Airline
-            const airlineCounts = {};
-            const aircraftCounts = {};
+            const countries = new Set(), continents = new Set(), airports = new Set();
+            const airlineCounts = {}, aircraftCounts = {};
+            let hours = 0;
 
             history.forEach(f => {
+                if (f.dep_country) countries.add(f.dep_country);
+                if (f.dest_country) countries.add(f.dest_country);
+                if (f.dep_continent) continents.add(f.dep_continent);
+                if (f.dest_continent) continents.add(f.dest_continent);
+                if (f.dep_iata) airports.add(f.dep_iata);
+                if (f.dest_iata) airports.add(f.dest_iata);
                 if (f.airline) airlineCounts[f.airline] = (airlineCounts[f.airline] || 0) + 1;
                 if (f.aircraft) aircraftCounts[f.aircraft] = (aircraftCounts[f.aircraft] || 0) + 1;
+                hours += flightDist(f) / 800 + 0.5; // ~800 km/h cruise + taxi/climb/descent
             });
 
-            let topAirline = "-";
-            let maxCount = 0;
-            for (const [key, count] of Object.entries(airlineCounts)) {
-                if (count > maxCount) { maxCount = count; topAirline = key; }
-            }
-            document.getElementById('stat-top-airline').innerText = topAirline;
+            document.getElementById('stat-countries').innerText = countries.size;
+            document.getElementById('stat-continents').innerText = continents.size;
+            document.getElementById('stat-airports').innerText = airports.size;
+            document.getElementById('stat-hours').innerText = history.length ? formatDuration(hours) : '0h';
 
-            // 3. Top Aircraft
-            let topAircraft = "-";
-            let maxAcCount = 0;
-            for (const [key, count] of Object.entries(aircraftCounts)) {
-                if (count > maxAcCount) { maxAcCount = count; topAircraft = key; }
-            }
-            document.getElementById('stat-top-aircraft').innerText = topAircraft;
+            const top = counts => Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+            document.getElementById('stat-top-airline').innerText = (top(airlineCounts) || ['-'])[0];
+            document.getElementById('stat-top-aircraft').innerText = (top(aircraftCounts) || ['-'])[0];
         }
 
-        function updateHistoryUI(history) {
+        // --- 5. HISTORY LIST (filter + sort) ---
+        function renderHistory() {
             const container = document.getElementById('history-list');
-            const displayData = [...history].reverse();
-            container.innerHTML = displayData.map(f => `
-                <div class="flight-card" style="background:#1a1a1a; padding:10px; margin-top:10px; border-left:4px solid #00ffff; font-size:0.85em; cursor:pointer;"
+            const q = document.getElementById('history-filter').value.toLowerCase().trim();
+            const sort = document.getElementById('history-sort').value;
+
+            let list = flightHistory.filter(f => f.startLat && f.label);
+            if (q) {
+                list = list.filter(f => [f.flight_no, f.label, f.airline, f.aircraft, f.date]
+                    .some(v => String(v || '').toLowerCase().includes(q)));
+            }
+
+            if (sort === 'recent') list = [...list].reverse();
+            else if (sort === 'date-desc') list = [...list].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+            else if (sort === 'date-asc') list = [...list].sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+            else if (sort === 'dist-desc') list = [...list].sort((a, b) => flightDist(b) - flightDist(a));
+            else if (sort === 'dist-asc') list = [...list].sort((a, b) => flightDist(a) - flightDist(b));
+
+            if (!list.length) {
+                container.innerHTML = flightHistory.length
+                    ? `<div class="empty-state">No flights match your filter.</div>`
+                    : `<div class="empty-state">No flights yet.<br>Add one above to see it on the globe. ✈️</div>`;
+                return;
+            }
+
+            container.innerHTML = list.map(f => `
+                <div class="flight-card"
                      onclick="globe.pointOfView({ lat: ${(f.startLat + f.endLat) / 2}, lng: ${(f.startLng + f.endLng) / 2}, altitude: 1.8 }, 1000)">
-                    <div style="display:flex; justify-content:space-between;"><b>${f.flight_no}</b> <span style="color:#888">${f.date}</span></div>
-                    <div style="color:#00ffff; margin:4px 0;">${f.label}</div>
-                    <div style="color:#ccc;">${f.airline} • ${f.aircraft}</div>
+                    <div class="card-actions">
+                        <button class="edit" title="Edit" onclick="event.stopPropagation(); startEdit('${esc(f.id)}')">✎</button>
+                        <button class="del" title="Delete" onclick="event.stopPropagation(); deleteFlight('${esc(f.id)}')">✕</button>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;"><b>${esc(f.flight_no)}</b> <span style="color:#888">${esc(f.date)}</span></div>
+                    <div style="color:var(--accent); margin:4px 0;">${esc(f.label)}</div>
+                    <div style="color:#ccc;">${esc(f.airline)} • ${esc(f.aircraft)}</div>
+                    <div style="color:#666; font-size:0.9em; margin-top:2px;">${Math.round(flightDist(f)).toLocaleString()} km</div>
                 </div>
             `).join('');
         }
 
+        // --- 6. ADD / EDIT / DELETE ---
+        let editingId = null;
+
+        function formData() {
+            return {
+                flight_no: document.getElementById('flight_no').value,
+                date: document.getElementById('date').value,
+                dep: document.getElementById('dep').value,
+                dest: document.getElementById('dest').value,
+                airline: document.getElementById('airline').value,
+                aircraft: document.getElementById('aircraft').value,
+                reg: document.getElementById('reg').value
+            };
+        }
+
+        function resetForm() {
+            document.getElementById('flight-form').reset();
+            setDefaultDate();
+        }
+
+        async function onSubmitFlight(e) {
+            e.preventDefault();
+            const data = formData();
+            const url = editingId ? '/edit_flight' : '/add_flight';
+            if (editingId) data.id = editingId;
+
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if (result.status === 'success') {
+                handleDataUpdate(result.history);
+                showToast(editingId ? 'Flight updated' : 'Flight added ✈️');
+                cancelEdit();
+                resetForm();
+            } else {
+                showToast('Error: ' + result.message, { type: 'error' });
+            }
+        }
+
+        function startEdit(id) {
+            const f = flightHistory.find(x => x.id === id);
+            if (!f) return;
+            editingId = id;
+            document.getElementById('flight_no').value = f.flight_no || '';
+            document.getElementById('date').value = f.date || '';
+            document.getElementById('dep').value = f.dep_iata || '';
+            document.getElementById('dest').value = f.dest_iata || '';
+            document.getElementById('airline').value = f.airline || '';
+            document.getElementById('aircraft').value = f.aircraft || '';
+            document.getElementById('reg').value = f.registration || '';
+            document.getElementById('edit-banner-label').textContent = f.label || f.flight_no || 'flight';
+            document.getElementById('edit-banner').classList.remove('hidden');
+            document.getElementById('submit-btn').innerText = 'Update Flight';
+            switchTab('controls');
+            document.getElementById('view-controls').scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function cancelEdit() {
+            editingId = null;
+            document.getElementById('edit-banner').classList.add('hidden');
+            document.getElementById('submit-btn').innerText = 'Add to Globe';
+        }
+
+        async function deleteFlight(id) {
+            const flight = flightHistory.find(f => f.id === id);
+            const res = await fetch('/delete_flight', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id })
+            });
+            const result = await res.json();
+            if (result.status !== 'success') { showToast('Error: ' + result.message, { type: 'error' }); return; }
+            handleDataUpdate(result.history);
+            if (editingId === id) cancelEdit();
+            showToast('Flight deleted', {
+                actionLabel: 'Undo', timeout: 6000,
+                onAction: async () => {
+                    const r = await fetch('/restore_flight', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(flight)
+                    });
+                    const rr = await r.json();
+                    if (rr.status === 'success') handleDataUpdate(rr.history);
+                }
+            });
+        }
+
+        // --- 7. IMPORT / EXPORT ---
+        function exportData() {
+            const blob = new Blob([JSON.stringify(flightHistory, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'flight_history.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function onImportFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async () => {
+                let body;
+                try {
+                    if (file.name.toLowerCase().endsWith('.csv')) {
+                        body = { csv: reader.result };
+                    } else {
+                        const parsed = JSON.parse(reader.result);
+                        body = Array.isArray(parsed) ? parsed : (parsed.flights || parsed);
+                    }
+                } catch (err) {
+                    showToast('Could not read file: ' + err.message, { type: 'error' });
+                    return;
+                }
+                const res = await fetch('/import_flights', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const result = await res.json();
+                if (result.status === 'success') {
+                    handleDataUpdate(result.history);
+                    showToast(`Imported ${result.added} flight(s)${result.skipped ? `, skipped ${result.skipped}` : ''}`);
+                } else {
+                    showToast('Import failed: ' + result.message, { type: 'error' });
+                }
+            };
+            reader.readAsText(file);
+            e.target.value = ''; // allow re-importing the same file
+        }
+
+        // --- 8. UTILS ---
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('#view-controls, #view-stats').forEach(d => d.classList.add('hidden'));
+            if (tab === 'controls') {
+                document.getElementById('view-controls').classList.remove('hidden');
+                document.querySelector("button[onclick=\"switchTab('controls')\"]").classList.add('active');
+            } else {
+                document.getElementById('view-stats').classList.remove('hidden');
+                document.querySelector("button[onclick=\"switchTab('stats')\"]").classList.add('active');
+            }
+        }
+
+        function swapAirports() {
+            const dep = document.getElementById('dep');
+            const dest = document.getElementById('dest');
+            [dep.value, dest.value] = [dest.value, dep.value];
+        }
+
+        function fitToData() {
+            const pts = globe.pointsData();
+            if (!pts.length) return;
+            const lat = pts.reduce((s, p) => s + p.lat, 0) / pts.length;
+            const lng = pts.reduce((s, p) => s + p.lng, 0) / pts.length;
+            const spread = Math.max(
+                ...pts.map(p => Math.abs(p.lat - lat)),
+                ...pts.map(p => Math.abs(p.lng - lng)), 5
+            );
+            const altitude = Math.min(2.5, 0.5 + spread / 45);
+            globe.pointOfView({ lat, lng, altitude }, 1200);
+        }
+
+        function setDefaultDate() {
+            const el = document.getElementById('date');
+            if (!el.value) el.value = new Date().toISOString().split('T')[0];
+        }
+        setDefaultDate();
+
+        // --- 9. AUTOCOMPLETE ---
+        const DEFAULT_AIRLINES = ['SkyExpress', 'Aegean', 'Ryanair', 'Wizz'];
+        let historyAirportOptions = [];
+
+        function renderAirportOptions(opts) {
+            document.getElementById('airport-suggestions').innerHTML =
+                opts.map(o => `<option value="${esc(o.value)}"${o.label ? ` label="${esc(o.label)}"` : ''}>`).join('');
+        }
+
         function updateAllSuggestions(history) {
-            const airportSet = new Set(), aircraftSet = new Set(), airlineSet = new Set();
+            const airportSet = new Set(), aircraftSet = new Set(), airlineSet = new Set(DEFAULT_AIRLINES);
             history.forEach(f => {
-                const parts = f.label.split(' → ');
+                const parts = (f.label || '').split(' → ');
                 if (parts[0]) airportSet.add(parts[0]);
                 if (parts[1]) airportSet.add(parts[1]);
                 if (f.aircraft) aircraftSet.add(f.aircraft);
                 if (f.airline) airlineSet.add(f.airline);
             });
-            document.getElementById('airport-suggestions').innerHTML = Array.from(airportSet).map(c => `<option value="${c}">`).join('');
-            document.getElementById('aircraft-suggestions').innerHTML = Array.from(aircraftSet).map(a => `<option value="${a}">`).join('');
+            historyAirportOptions = Array.from(airportSet).map(c => ({ value: c }));
+            renderAirportOptions(historyAirportOptions);
+            document.getElementById('aircraft-suggestions').innerHTML = Array.from(aircraftSet).map(a => `<option value="${esc(a)}">`).join('');
+            document.getElementById('airline-options').innerHTML = Array.from(airlineSet).map(a => `<option value="${esc(a)}">`).join('');
         }
+
+        let airportSearchTimer;
+        function onAirportInput(e) {
+            const q = e.target.value.trim();
+            clearTimeout(airportSearchTimer);
+            if (q.length < 2) { renderAirportOptions(historyAirportOptions); return; }
+            airportSearchTimer = setTimeout(async () => {
+                try {
+                    const res = await fetch('/search_airport?q=' + encodeURIComponent(q));
+                    const results = await res.json();
+                    renderAirportOptions(results.map(a => ({
+                        value: a.iata,
+                        label: `${a.city}, ${a.country} (${a.name})`
+                    })));
+                } catch (err) { /* keep existing options on failure */ }
+            }, 200);
+        }
+        document.getElementById('dep').addEventListener('input', onAirportInput);
+        document.getElementById('dest').addEventListener('input', onAirportInput);
     </script>
 </body>
 

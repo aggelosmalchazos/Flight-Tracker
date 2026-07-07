@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Cached datasets (re-downloaded automatically on first run)
+airports.dat
+countries.geojson
+
+
+
+flight_history.json
