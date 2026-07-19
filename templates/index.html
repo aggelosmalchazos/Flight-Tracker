@@ -479,6 +479,14 @@
                     <div class="stat-value" id="stat-top-aircraft" style="color:#fff; font-size:1.1em;">-</div>
                     <div class="stat-label">Top Aircraft</div>
                 </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="stat-seat" style="color:#fff; font-size:1.1em;">-</div>
+                    <div class="stat-label">Window / Aisle</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="stat-section" style="color:#fff; font-size:1.1em;">-</div>
+                    <div class="stat-label">Front / Back</div>
+                </div>
             </div>
 
             <h3>Add New Flight</h3>
@@ -518,9 +526,25 @@
                     <input type="text" id="aircraft" list="aircraft-suggestions" placeholder="A320neo">
                     <datalist id="aircraft-suggestions"></datalist>
                 </div>
+                <div style="display: flex; gap: 10px;">
+                    <div class="input-group">
+                        <label>Registration</label>
+                        <input type="text" id="reg" placeholder="SX-NEA">
+                    </div>
+                    <div class="input-group">
+                        <label>Seat</label>
+                        <input type="text" id="seat" placeholder="12A">
+                    </div>
+                </div>
                 <div class="input-group">
-                    <label>Registration</label>
-                    <input type="text" id="reg" placeholder="SX-NEA">
+                    <label>Cabin Class</label>
+                    <input type="text" id="cabin" list="cabin-options" placeholder="Economy">
+                    <datalist id="cabin-options">
+                        <option value="Economy">
+                        <option value="Premium Economy">
+                        <option value="Business">
+                        <option value="First">
+                    </datalist>
                 </div>
                 <button type="submit" class="btn-primary" id="submit-btn">Add to Globe</button>
             </form>
@@ -571,6 +595,9 @@
             </div>
             <div class="chart-wrapper">
                 <canvas id="chart-airlines"></canvas>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="chart-seatpos"></canvas>
             </div>
             <div class="chart-wrapper">
                 <canvas id="chart-airports"></canvas>
@@ -785,14 +812,14 @@
         }
 
         // --- 4. CHARTS & STATS ---
-        let chartYears, chartAirlines, chartAirports;
+        let chartYears, chartAirlines, chartAirports, chartSeatPos;
         const axisOpts = {
             y: { ticks: { color: VIZ.inkMuted }, grid: { color: VIZ.grid } },
             x: { ticks: { color: VIZ.inkMuted }, grid: { color: VIZ.grid } }
         };
 
         function renderCharts(data) {
-            const years = {}, airlines = {}, airports = {};
+            const years = {}, airlines = {}, airports = {}, seatPos = {};
             let longest = { dist: 0, label: '-' };
             let shortest = { dist: Infinity, label: '-' };
 
@@ -804,6 +831,8 @@
                 const y = f.date ? f.date.split('-')[0] : 'Unknown';
                 years[y] = (years[y] || 0) + dist;
                 if (f.airline) airlines[f.airline] = (airlines[f.airline] || 0) + 1;
+                const pos = seatPosition(f.seat);
+                if (pos) seatPos[pos] = (seatPos[pos] || 0) + 1;
                 if (f.label && f.label.includes(' → ')) {
                     const [d, a] = f.label.split(' → ');
                     airports[d] = (airports[d] || 0) + 1;
@@ -863,6 +892,31 @@
                 }
             });
 
+            // Doughnut: Seat position — Window / Middle / Aisle (fixed colours)
+            if (chartSeatPos) chartSeatPos.destroy();
+            const SEAT_COLORS = { 'Window': VIZ.categorical[0], 'Aisle': VIZ.categorical[1], 'Middle': VIZ.categorical[2] };
+            const seatOrder = ['Window', 'Middle', 'Aisle'].filter(k => seatPos[k]);
+            document.getElementById('chart-seatpos').parentElement.style.display = seatOrder.length ? '' : 'none';
+            if (seatOrder.length) {
+                chartSeatPos = new Chart(document.getElementById('chart-seatpos'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: seatOrder,
+                        datasets: [{
+                            data: seatOrder.map(k => seatPos[k]),
+                            backgroundColor: seatOrder.map(k => SEAT_COLORS[k]),
+                            borderColor: VIZ.surface, borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        plugins: {
+                            legend: { position: 'right', labels: { color: VIZ.ink } },
+                            title: { display: true, text: 'Window / Middle / Aisle', color: VIZ.ink }
+                        }
+                    }
+                });
+            }
+
             // Bar: Top Airports (single series → aqua)
             if (chartAirports) chartAirports.destroy();
             const sortedAirports = Object.entries(airports).sort((a, b) => b[1] - a[1]).slice(0, 5);
@@ -895,13 +949,40 @@
             return d > 0 ? `${d}d ${h}h` : `${h}h`;
         }
 
+        // Rough window/middle/aisle from the seat letter. Approximate — cabin
+        // layouts vary by aircraft — but good enough for a preference stat.
+        function seatPosition(seat) {
+            const m = String(seat || '').trim().match(/([A-K])\s*$/i);
+            if (!m) return null;
+            const letter = m[1].toUpperCase();
+            if ('AFJK'.includes(letter)) return 'Window';
+            if ('CDG'.includes(letter)) return 'Aisle';
+            if ('BEH'.includes(letter)) return 'Middle';
+            return null;
+        }
+
+        // Front vs back of the cabin, from the row number (heuristic: row ≤ 14 = front).
+        function seatSection(seat) {
+            const m = String(seat || '').trim().match(/^(\d+)/);
+            if (!m) return null;
+            return parseInt(m[1], 10) <= 14 ? 'Front' : 'Back';
+        }
+
+        // "Window 58%" style summary from a {label: count} map.
+        function dominant(counts) {
+            const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+            if (!entries.length) return '-';
+            const total = entries.reduce((s, x) => s + x[1], 0);
+            return `${entries[0][0]} ${Math.round((entries[0][1] / total) * 100)}%`;
+        }
+
         function updateStats(history) {
             document.getElementById('stat-total-flights').innerText = history.length;
             const totalDist = history.reduce((s, f) => s + flightDist(f), 0);
             document.getElementById('stat-total-dist').innerText = Math.round(totalDist).toLocaleString();
 
             const countries = new Set(), continents = new Set(), airports = new Set();
-            const airlineCounts = {}, aircraftCounts = {};
+            const airlineCounts = {}, aircraftCounts = {}, seatPosCounts = {}, sectionCounts = {};
             let hours = 0;
 
             history.forEach(f => {
@@ -913,6 +994,10 @@
                 if (f.dest_iata) airports.add(f.dest_iata);
                 if (f.airline) airlineCounts[f.airline] = (airlineCounts[f.airline] || 0) + 1;
                 if (f.aircraft) aircraftCounts[f.aircraft] = (aircraftCounts[f.aircraft] || 0) + 1;
+                const pos = seatPosition(f.seat);
+                if (pos) seatPosCounts[pos] = (seatPosCounts[pos] || 0) + 1;
+                const sec = seatSection(f.seat);
+                if (sec) sectionCounts[sec] = (sectionCounts[sec] || 0) + 1;
                 hours += flightDist(f) / 800 + 0.5; // ~800 km/h cruise + taxi/climb/descent
             });
 
@@ -924,6 +1009,8 @@
             const top = counts => Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
             document.getElementById('stat-top-airline').innerText = (top(airlineCounts) || ['-'])[0];
             document.getElementById('stat-top-aircraft').innerText = (top(aircraftCounts) || ['-'])[0];
+            document.getElementById('stat-seat').innerText = dominant(seatPosCounts);
+            document.getElementById('stat-section').innerText = dominant(sectionCounts);
         }
 
         // --- 5. HISTORY LIST (filter + sort) ---
@@ -961,7 +1048,9 @@
                     <div style="display:flex; justify-content:space-between;"><b>${esc(f.flight_no)}</b> <span style="color:#888">${esc(f.date)}</span></div>
                     <div style="color:var(--accent); margin:4px 0;">${esc(f.label)}</div>
                     <div style="color:#ccc;">${esc(f.airline)} • ${esc(f.aircraft)}</div>
-                    <div style="color:#666; font-size:0.9em; margin-top:2px;">${Math.round(flightDist(f)).toLocaleString()} km</div>
+                    <div style="color:#666; font-size:0.9em; margin-top:2px;">
+                        ${Math.round(flightDist(f)).toLocaleString()} km${f.cabin ? ' • ' + esc(f.cabin) : ''}${f.seat ? ' • Seat ' + esc(f.seat) : ''}
+                    </div>
                 </div>
             `).join('');
         }
@@ -977,7 +1066,9 @@
                 dest: document.getElementById('dest').value,
                 airline: document.getElementById('airline').value,
                 aircraft: document.getElementById('aircraft').value,
-                reg: document.getElementById('reg').value
+                reg: document.getElementById('reg').value,
+                seat: document.getElementById('seat').value,
+                cabin: document.getElementById('cabin').value
             };
         }
 
@@ -1019,6 +1110,8 @@
             document.getElementById('airline').value = f.airline || '';
             document.getElementById('aircraft').value = f.aircraft || '';
             document.getElementById('reg').value = f.registration || '';
+            document.getElementById('seat').value = f.seat || '';
+            document.getElementById('cabin').value = f.cabin || '';
             document.getElementById('edit-banner-label').textContent = f.label || f.flight_no || 'flight';
             document.getElementById('edit-banner').classList.remove('hidden');
             document.getElementById('submit-btn').innerText = 'Update Flight';

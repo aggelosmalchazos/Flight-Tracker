@@ -17,7 +17,7 @@ A web-based application to visualize personal flight history on an interactive 3
   - Interactive charts (Distance per Year, Top Airlines, Top Airports) using a colorblind-safe palette.
   - Longest and shortest flight records.
 - **Flight Management:** Add, edit, and delete flights (with an Undo toast), filter and sort your history, plus "View all" to frame every route.
-- **Import / Export:** Back up to JSON, and bulk-import from JSON (round-trip) or CSV (`flight_no,date,dep,dest,airline,aircraft,registration`).
+- **Import / Export:** Back up to JSON, and bulk-import from JSON (round-trip) or CSV (`flight_no,date,dep,dest,airline,aircraft,registration,seat,cabin`).
 - **Autocomplete:** Live airport search across the full OpenFlights database (by IATA code, city, or name), plus history-based suggestions for Airlines and Aircraft types.
 - **Data Persistence:** Saves all flight data locally to a JSON file.
 - **Offline-friendly:** The airport database and country borders are downloaded once and cached on disk (`airports.dat`, `countries.geojson`), so subsequent launches work without an internet connection.

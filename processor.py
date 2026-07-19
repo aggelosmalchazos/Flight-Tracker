@@ -88,6 +88,8 @@ def build_entry(data):
         "airline": (data.get("airline") or "").strip(),
         "aircraft": (data.get("aircraft") or "").strip(),
         "registration": (data.get("reg") or data.get("registration") or "").strip(),
+        "seat": (data.get("seat") or "").strip(),
+        "cabin": (data.get("cabin") or "").strip(),
         "startLat": float(dep["Lat"]),
         "startLng": float(dep["Lng"]),
         "endLat": float(dest["Lat"]),
